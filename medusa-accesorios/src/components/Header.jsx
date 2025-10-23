@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import './Header.css';
 
 const Header = () => {
@@ -13,23 +12,31 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    closeMenu();
+  };
+
   return (
     <header className="header">
       <div className="container">
         <div className="logo">
-          <Link to="/" onClick={closeMenu}>Medusa</Link>
+          <button onClick={() => scrollToSection('hero')}>Medusa</button>
         </div>
         <nav className={`nav ${isMenuOpen ? 'nav-open' : ''}`}>
           <ul>
-            <li><Link to="/" onClick={closeMenu}>🏠 Inicio</Link></li>
-            <li><Link to="/collares" onClick={closeMenu}>📿 Collares</Link></li>
-            <li><Link to="/pulseras" onClick={closeMenu}>💍 Pulseras</Link></li>
-            <li><Link to="/aros" onClick={closeMenu}>👂 Aros</Link></li>
-            <li><Link to="/anillos" onClick={closeMenu}>💎 Anillos</Link></li>
-            <li><Link to="/tobilleras" onClick={closeMenu}>🦵 Tobilleras</Link></li>
-            <li><Link to="/esclavas" onClick={closeMenu}>⛓️ Esclavas</Link></li>
-            <li><Link to="/conjuntos" onClick={closeMenu}>👑 Conjuntos</Link></li>
-            <li><Link to="/sets" onClick={closeMenu}>✨ Sets</Link></li>
+            <li><button onClick={() => scrollToSection('hero')}>🏠 Inicio</button></li>
+            <li><button onClick={() => scrollToSection('collares')}>📿 Collares</button></li>
+            <li><button onClick={() => scrollToSection('pulseras')}>💍 Pulseras</button></li>
+            <li><button onClick={() => scrollToSection('aros')}>👂 Aros</button></li>
+            <li><button onClick={() => scrollToSection('anillos')}>💎 Anillos</button></li>
+            <li><button onClick={() => scrollToSection('tobilleras')}>🦵 Tobilleras</button></li>
+            <li><button onClick={() => scrollToSection('esclavas')}>⛓️ Esclavas</button></li>
+            <li><button onClick={() => scrollToSection('conjuntos')}>👑 Conjuntos</button></li>
+            <li><button onClick={() => scrollToSection('sets')}>✨ Sets</button></li>
           </ul>
         </nav>
         <div className={`hamburger ${isMenuOpen ? 'hamburger-open' : ''}`} onClick={toggleMenu}>
