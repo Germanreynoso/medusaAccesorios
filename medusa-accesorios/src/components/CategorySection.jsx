@@ -1,21 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './CategorySection.css';
 
 const CategorySection = ({ category, products }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Actualizar el estado de isMobile cuando cambie el tamaño de la ventana
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const nextSlide = () => {
-    setCurrentIndex(prevIndex => 
-      prevIndex === products.length - 1 ? 0 : prevIndex + 1
-    );
+    setCurrentIndex(prevIndex => {
+      // En móviles, avanzamos de uno en uno
+      if (isMobile) {
+        return prevIndex >= additionalProducts.length - 1 ? 0 : prevIndex + 1;
+      }
+      // En escritorio, avanzamos según el número de elementos visibles
+      const itemsToShow = window.innerWidth >= 1024 ? 3 : window.innerWidth >= 480 ? 2 : 1;
+      return prevIndex >= additionalProducts.length - itemsToShow ? 0 : prevIndex + 1;
+    });
   };
 
   const prevSlide = () => {
-    setCurrentIndex(prevIndex => 
-      prevIndex === 0 ? products.length - 1 : prevIndex - 1
-    );
+    setCurrentIndex(prevIndex => {
+      // En móviles, retrocedemos de uno en uno
+      if (isMobile) {
+        return prevIndex <= 0 ? additionalProducts.length - 1 : prevIndex - 1;
+      }
+      // En escritorio, retrocedemos según el número de elementos visibles
+      const itemsToShow = window.innerWidth >= 1024 ? 3 : window.innerWidth >= 480 ? 2 : 1;
+      return prevIndex <= 0 ? additionalProducts.length - itemsToShow : prevIndex - 1;
+    });
   };
 
   const handleTouchStart = (e) => {
@@ -31,14 +54,18 @@ const CategorySection = ({ category, products }) => {
     if (!touchStart || !touchEnd) return;
 
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
+    const isLeftSwipe = distance > 30; // Reducido el umbral para mayor sensibilidad
+    const isRightSwipe = distance < -30; // Reducido el umbral para mayor sensibilidad
 
     if (isLeftSwipe) {
       nextSlide();
     } else if (isRightSwipe) {
       prevSlide();
     }
+    
+    // Reiniciar los valores de touch
+    setTouchStart(null);
+    setTouchEnd(null);
   };
 
   // Si no hay productos, no mostramos la categoría
@@ -82,18 +109,32 @@ const CategorySection = ({ category, products }) => {
               <div className="carousel-track">
                 <div 
                   className="carousel-slide" 
-                  style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+                  style={{ 
+                    transform: `translateX(-${currentIndex * (isMobile ? 100 : 50)}%)`,
+                    transition: 'transform 0.3s ease-out'
+                  }}
                 >
                   {additionalProducts.map((product, index) => (
-                    <div key={product.id} className="carousel-item">
-                      <img 
-                        src={product.image} 
-                        alt={product.name} 
-                        className="additional-product-image"
-                      />
-                      <div className="product-info">
-                        <p className="product-name">{product.name}</p>
-                        <p className="price">{product.price}</p>
+                    <div 
+                      key={`${product.id}-${index}`} 
+                      className="carousel-item"
+                      style={{
+                        flex: isMobile ? '0 0 100%' : window.innerWidth >= 1024 ? '0 0 33.333%' : '0 0 50%',
+                        padding: '0 0.5rem',
+                        boxSizing: 'border-box',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <div className="carousel-item-content">
+                        <img 
+                          src={product.image} 
+                          alt={product.name} 
+                          className="additional-product-image"
+                        />
+                        <div className="product-info">
+                          <p className="product-name">{product.name}</p>
+                          <p className="price">{product.price}</p>
+                        </div>
                       </div>
                     </div>
                   ))}

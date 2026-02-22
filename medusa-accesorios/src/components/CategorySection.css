@@ -193,6 +193,35 @@
 }
 
 /* Estilos responsivos */
+/* Estilos para móviles */
+.carousel-item {
+  flex: 0 0 100%;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.carousel-track {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.carousel-slide {
+  display: flex;
+  transition: transform 0.3s ease;
+  padding: 0.5rem 0;
+  width: 100%;
+}
+
+/* Estilos para tablets */
+@media (min-width: 480px) {
+  .carousel-item {
+    flex: 0 0 50%;
+  }
+}
+
+/* Estilos para escritorio pequeño */
 @media (min-width: 768px) {
   .category-content {
     flex-direction: row;
@@ -210,12 +239,77 @@
   }
 
   .carousel-item {
+    flex: 0 0 50%;
+  }
+}
+
+/* Estilos para escritorio grande */
+@media (min-width: 1024px) {
+  .carousel-item {
     flex: 0 0 33.333%;
   }
 }
 
-@media (min-width: 1024px) {
-  .carousel-item {
-    flex: 0 0 25%;
+/* Asegurar que el contenedor del carrusel oculte el contenido que se desborda */
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Asegurar que las imágenes se ajusten correctamente */
+.additional-product-image {
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+  border-radius: 6px;
+  margin: 0 auto 0.5rem;
+  display: block;
+  transition: transform 0.3s ease;
+  object-fit: cover;
+  aspect-ratio: 1/1;
+}
+
+/* Ajustes para el texto en móviles */
+.product-name {
+  font-size: 0.9rem;
+  margin: 0.3rem 0;
+  color: #444;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
+}
+
+/* Asegurar que los botones sean táctiles en móviles */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Asegurar que los botones sean más grandes en móviles para mejor usabilidad táctil */
+@media (max-width: 480px) {
+  .carousel-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
   }
 }

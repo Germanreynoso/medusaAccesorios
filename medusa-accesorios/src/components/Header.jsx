@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logoImg from '../assets/Logo.jpeg';
 import './Header.css';
 
 const Header = () => {
@@ -24,7 +25,10 @@ const Header = () => {
     <header className="header">
       <div className="container">
         <div className="logo">
-          <button onClick={() => scrollToSection('hero')}>Medusa</button>
+          <button onClick={() => scrollToSection('hero')}>
+            <img src={logoImg} alt="Medusa Logo" className="header-logo-img" />
+            <span>Medusa</span>
+          </button>
         </div>
         <nav className={`nav ${isMenuOpen ? 'nav-open' : ''}`}>
           <ul>
