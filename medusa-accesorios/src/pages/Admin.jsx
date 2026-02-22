@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Trash2, Edit2, Upload, Save, X, Package, Database } from 'lucide-react';
+import { Plus, Trash2, Edit2, Upload, Save, X, Package, Database, Sparkles } from 'lucide-react';
+import staticProducts from '../data/products';
 import './Admin.css';
 
 const Admin = () => {
@@ -8,6 +9,7 @@ const Admin = () => {
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+    const [isMigrating, setIsMigrating] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         price: '',
@@ -138,7 +140,6 @@ const Admin = () => {
         if (!confirm('¿Estás seguro de eliminar este producto y su imagen?')) return;
 
         try {
-            // 1. Eliminar de la base de datos
             const { error: dbError } = await supabase
                 .from('products')
                 .delete()
@@ -146,7 +147,6 @@ const Admin = () => {
 
             if (dbError) throw dbError;
 
-            // 2. Eliminar del almacenamiento si es una URL de Supabase
             if (imageUrl && imageUrl.includes('supabase.co')) {
                 const parts = imageUrl.split('/');
                 const fileName = parts[parts.length - 1];
@@ -167,6 +167,23 @@ const Admin = () => {
         }
     };
 
+    const emptyDatabase = async () => {
+        if (!confirm('¡ATENCIÓN! Esto borrará TODOS los productos de la base de datos para re-iniciar la migración. ¿Estás absolutamente seguro?')) return;
+
+        try {
+            const { error } = await supabase
+                .from('products')
+                .delete()
+                .neq('id', '00000000-0000-0000-0000-000000000000');
+
+            if (error) throw error;
+            fetchProducts();
+            alert('Base de datos vaciada correctamente.');
+        } catch (error) {
+            alert('Error al vaciar: ' + error.message);
+        }
+    };
+
     const deleteStorageFile = async (fileName) => {
         if (!confirm('¿Estás seguro de borrar este archivo de imagen? Los productos que la usen dejarán de verla.')) return;
 
@@ -183,6 +200,40 @@ const Admin = () => {
         }
     };
 
+    const runMigration = async () => {
+        if (!confirm('Esto subirá todos los productos locales a la base de datos. ¿Deseas continuar?')) return;
+
+        try {
+            setIsMigrating(true);
+            const allStatic = [];
+
+            Object.keys(staticProducts).forEach(cat => {
+                if (cat !== 'destacados') {
+                    staticProducts[cat].forEach(p => {
+                        allStatic.push({
+                            name: p.name,
+                            price: p.price,
+                            category: cat,
+                            image_url: p.image
+                        });
+                    });
+                }
+            });
+
+            const { error } = await supabase
+                .from('products')
+                .insert(allStatic);
+
+            if (error) throw error;
+
+            alert(`¡Éxito! Se han migrado ${allStatic.length} productos.`);
+            fetchProducts();
+        } catch (error) {
+            alert('Error en la migración: ' + error.message);
+        } finally {
+            setIsMigrating(false);
+        }
+    };
 
     return (
         <div className="admin-container">
@@ -201,7 +252,7 @@ const Admin = () => {
             </header>
 
             <div className="admin-tabs">
-                <div style={{ display: 'flex', gap: '15px' }}>
+                <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <button
                         className={`tab-btn ${view === 'inventory' ? 'active' : ''}`}
                         onClick={() => setView('inventory')}
@@ -212,16 +263,43 @@ const Admin = () => {
                         className={`tab-btn ${view === 'storage' ? 'active' : ''}`}
                         onClick={() => setView('storage')}
                     >
-                        <Upload size={18} /> Archivos de Almacenamiento
+                        <Upload size={18} /> Almacenamiento
                     </button>
-                </div>
 
+                    <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
+                        <button
+                            onClick={emptyDatabase}
+                            style={{ background: 'white', color: '#ff4d4d', border: '1px solid #ff4d4d', padding: '10px 15px', borderRadius: '12px', cursor: 'pointer', fontWeight: '600' }}
+                        >
+                            Vaciar BD
+                        </button>
+                        <button
+                            className="btn-migrate"
+                            onClick={runMigration}
+                            disabled={isMigrating}
+                            style={{
+                                padding: '10px 20px',
+                                borderRadius: '12px',
+                                border: 'none',
+                                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                                color: 'white',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                opacity: isMigrating ? 0.6 : 1
+                            }}
+                        >
+                            <Sparkles size={18} /> {isMigrating ? 'Sincronizando...' : 'Sincronizar Locales'}
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div className="admin-grid">
                 {view === 'inventory' ? (
                     <>
-                        {/* Formulario */}
                         <div className="admin-card">
                             <h2>{editingProduct ? 'Editar Producto' : 'Crear Nuevo Producto'}</h2>
                             <form onSubmit={handleSubmit}>
@@ -309,7 +387,6 @@ const Admin = () => {
                             </form>
                         </div>
 
-                        {/* Lista de productos */}
                         <div className="admin-card">
                             <h2>Inventario Actual</h2>
                             {loading ? (
@@ -364,11 +441,11 @@ const Admin = () => {
                 ) : (
                     <div className="admin-card full-width">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h2>Archivos en el Servidor (Storage)</h2>
+                            <h2>Archivos en el Servidor</h2>
                             <button className="btn-secondary" onClick={fetchStorageFiles}>Actualizar Lista</button>
                         </div>
                         <p style={{ marginBottom: '20px', color: '#666' }}>
-                            Aquí puedes ver todas las imágenes que has subido. Ten cuidado: si borras una imagen que está siendo usada por un producto, dejará de verse en la web.
+                            Imágenes subidas a Supabase Storage.
                         </p>
                         <div className="storage-grid">
                             {storageFiles.map(file => (
@@ -384,7 +461,7 @@ const Admin = () => {
                             ))}
                             {storageFiles.length === 0 && (
                                 <div style={{ textAlign: 'center', padding: '40px', gridColumn: '1 / -1' }}>
-                                    <p>No hay archivos en la carpeta de productos.</p>
+                                    <p>No hay archivos en el servidor.</p>
                                 </div>
                             )}
                         </div>
