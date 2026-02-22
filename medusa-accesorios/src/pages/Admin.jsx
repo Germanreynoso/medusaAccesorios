@@ -4,6 +4,16 @@ import { Plus, Trash2, Edit2, Upload, Save, X, Package } from 'lucide-react';
 import './Admin.css';
 
 const Admin = () => {
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [uploading, setUploading] = useState(false);
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        price: '',
+        category: 'collares',
+        image_url: ''
+    });
     const [storageFiles, setStorageFiles] = useState([]);
     const [view, setView] = useState('inventory'); // 'inventory' or 'storage'
 
