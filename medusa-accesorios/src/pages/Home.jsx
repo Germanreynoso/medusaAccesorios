@@ -1,50 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import ProductCarousel from '../components/ProductCarousel';
-import staticProducts from '../data/products';
 import { supabase } from '../lib/supabase';
 import logoImg from '../assets/Logo.jpeg';
 import './Home.css';
 
 const Home = () => {
-  const [products, setProducts] = useState(staticProducts);
+  const [products, setProducts] = useState({ destacados: [] });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSupabaseProducts = async () => {
       try {
+        setLoading(true);
         const { data, error } = await supabase
           .from('products')
-          .select('*');
+          .select('*')
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        if (data && data.length > 0) {
-          // Crear una copia de los productos estáticos para no perderlos
-          const merged = { ...staticProducts };
+        if (data) {
+          const categorized = { destacados: [] };
 
-          // Añadir productos de Supabase a sus categorías correspondientes
           data.forEach(item => {
             const category = item.category.toLowerCase();
-            // Asegurarse de que el objeto tenga la propiedad 'image'
             const productWithImage = {
               ...item,
-              image: item.image_url || item.image
+              image: item.image_url
             };
 
-            if (!merged[category]) {
-              merged[category] = [];
+            if (!categorized[category]) {
+              categorized[category] = [];
             }
-            // Añadir al principio de la lista
-            merged[category] = [productWithImage, ...merged[category]];
+            categorized[category].push(productWithImage);
           });
 
-          // Actualizar destacados combinando ambos
-          const allSupabase = data.map(i => ({ ...i, image: i.image_url }));
-          merged.destacados = [...allSupabase.slice(0, 4), ...staticProducts.destacados.slice(0, 4)];
+          // Definir destacados (últimos 8 productos añadidos)
+          categorized.destacados = data.slice(0, 8).map(i => ({ ...i, image: i.image_url }));
 
-          setProducts(merged);
+          setProducts(categorized);
         }
       } catch (err) {
-        console.log("Error cargando Supabase, usando solo locales:", err);
+        console.error("Error cargando productos de Supabase:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -61,6 +60,22 @@ const Home = () => {
     { key: 'conjuntos', name: 'Conjuntos' },
     { key: 'sets', name: 'Sets' }
   ];
+
+  if (loading) {
+    return (
+      <div className="home-loading" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: '20px' }}>
+        <img src={logoImg} alt="Cargando..." style={{ width: '100px', borderRadius: '50%', animation: 'pulse 2s infinite' }} />
+        <p style={{ color: '#666', fontWeight: '500' }}>Cargando elegancia...</p>
+        <style>{`
+          @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="home">

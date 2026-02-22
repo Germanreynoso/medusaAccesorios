@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Trash2, Edit2, Upload, Save, X, Package } from 'lucide-react';
+import { Plus, Trash2, Edit2, Upload, Save, X, Package, Database } from 'lucide-react';
 import './Admin.css';
 
 const Admin = () => {
@@ -183,6 +183,7 @@ const Admin = () => {
         }
     };
 
+
     return (
         <div className="admin-container">
             <header className="admin-header">
@@ -200,18 +201,21 @@ const Admin = () => {
             </header>
 
             <div className="admin-tabs">
-                <button
-                    className={`tab-btn ${view === 'inventory' ? 'active' : ''}`}
-                    onClick={() => setView('inventory')}
-                >
-                    <Package size={18} /> Inventario
-                </button>
-                <button
-                    className={`tab-btn ${view === 'storage' ? 'active' : ''}`}
-                    onClick={() => setView('storage')}
-                >
-                    <Upload size={18} /> Archivos de Almacenamiento
-                </button>
+                <div style={{ display: 'flex', gap: '15px' }}>
+                    <button
+                        className={`tab-btn ${view === 'inventory' ? 'active' : ''}`}
+                        onClick={() => setView('inventory')}
+                    >
+                        <Package size={18} /> Inventario
+                    </button>
+                    <button
+                        className={`tab-btn ${view === 'storage' ? 'active' : ''}`}
+                        onClick={() => setView('storage')}
+                    >
+                        <Upload size={18} /> Archivos de Almacenamiento
+                    </button>
+                </div>
+
             </div>
 
             <div className="admin-grid">
